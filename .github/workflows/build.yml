@@ -27,16 +27,18 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Decode keystore
+      - name: Generate keystore (CI signing)
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > wireguard-ci.keystore
+          keytool -genkey -v -keystore wireguard-ci.keystore             -alias "$KEY_ALIAS" -keyalg RSA -keysize 2048             -validity 10000 -storepass "$KEYSTORE_PASSWORD"             -keypass "$KEYSTORE_PASSWORD"             -dname "CN=WireGuard CI, OU=Development, O=github-xihe, L=Unknown, ST=Unknown, C=CN"
 
       - name: Build signed APK with Gradle
         env:
           KEYSTORE_PATH: ${{ github.workspace }}/wireguard-ci.keystore
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew assembleRelease
 
       - name: Upload APK
