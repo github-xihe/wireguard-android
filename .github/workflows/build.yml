@@ -1,7 +1,7 @@
 name: build-debug-apk
 
 on:
-  workflow_dispatch: 
+  workflow_dispatch:
   push:
     tags:
       - 'v*'
@@ -32,7 +32,11 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
-          keytool -genkey -v -keystore wireguard-ci.keystore             -alias "$KEY_ALIAS" -keyalg RSA -keysize 2048             -validity 10000 -storepass "$KEYSTORE_PASSWORD"             -keypass "$KEYSTORE_PASSWORD"             -dname "CN=WireGuard CI, OU=Development, O=github-xihe, L=Unknown, ST=Unknown, C=CN"
+          keytool -genkey -v -keystore wireguard-ci.keystore \
+            -alias "$KEY_ALIAS" -keyalg RSA -keysize 2048 \
+            -validity 10000 -storepass "$KEYSTORE_PASSWORD" \
+            -keypass "$KEYSTORE_PASSWORD" \
+            -dname "CN=WireGuard CI, OU=Development, O=github-xihe, L=Unknown, ST=Unknown, C=CN"
 
       - name: Build signed APK with Gradle
         env:
@@ -48,7 +52,7 @@ jobs:
           path: ui/build/outputs/apk/release/*.apk
 
       - name: Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: ui/build/outputs/apk/release/*.apk
